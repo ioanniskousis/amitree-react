@@ -4,6 +4,7 @@ import { Component } from 'react';
 import './stylesheets/style.css';
 
 import { NavBar } from './components/navBar';
+import { Home } from './components/home';
 
 class App extends Component {
   constructor(props) {
@@ -26,7 +27,7 @@ class App extends Component {
         <main className="App">
           <Switch>
             <Route exact path="/">
-              <div />
+              <Home />
             </Route>
 
             <Route path="/login">
