@@ -34,7 +34,7 @@ export class UserInfo extends Component {
       </tr>
     );
 
-    const rows = invitedUsers.map((user) => (
+    const tableRows = invitedUsers.map((user) => (
       <tr className="trow" key={user.id} onClick={() => loadUserInfo(user.id)}>
         <td>{user.name}</td>
         <td>{user.email}</td>
@@ -46,7 +46,7 @@ export class UserInfo extends Component {
       <table>
         <tbody>
           {tableHeaders}
-          {rows}
+          {tableRows}
         </tbody>
       </table>
     );

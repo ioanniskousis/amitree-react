@@ -3,8 +3,7 @@ import PropTypes from 'prop-types';
 import gear from '../images/gear.png';
 
 export function ActivityInticator(props) {
-  const { show, apiURL } = props;
-  if (!show) return '';
+  const { apiURL } = props;
   const accMsg = `Accessing: ${apiURL}`;
   return (
     <div className="activity-indicator-container">
@@ -17,12 +16,10 @@ export function ActivityInticator(props) {
 }
 
 ActivityInticator.propTypes = {
-  show: PropTypes.bool,
   apiURL: PropTypes.string,
 };
 
 ActivityInticator.defaults = {
-  show: false,
   apiURL: null,
 };
 

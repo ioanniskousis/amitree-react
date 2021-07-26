@@ -1,3 +1,4 @@
+/* eslint-disable react/no-direct-mutation-state */
 /* eslint-disable no-alert */
 import {
   BrowserRouter as Router,
@@ -15,10 +16,11 @@ import { Home } from './components/home';
 import { Login } from './components/login';
 import { Signup } from './components/signup';
 import { UserInfo } from './components/userInfo';
+import { UsersIndex } from './components/usersIndex';
 import { ActivityInticator } from './components/activityInticator';
 
 import { loginRequest } from './modules/loginRequest';
-import { userInfoRequest } from './modules/userRequests';
+import { userInfoRequest, usersIndexRequest } from './modules/userRequests';
 
 class App extends Component {
   constructor(props) {
@@ -31,18 +33,22 @@ class App extends Component {
       apiURL: apiParam,
       authenticationInfo: {},
       userInfo: {},
+      usersIndex: [],
       referralTicket: referralCode,
       redirectToSignUp: referralCode != null,
       redirectToUser: false,
-      activityIndicator: false,
+      redirectToUsersIndex: false,
+      showActivityIndicator: false,
     };
     this.loginHandler = this.loginHandler.bind(this);
     this.loadUserInfo = this.loadUserInfo.bind(this);
+    this.loadUsersIndex = this.loadUsersIndex.bind(this);
+    this.referralRequest = this.referralRequest.bind(this);
   }
 
   loginHandler(event) {
     event.preventDefault();
-    this.setState({ activityIndicator: true });
+    this.setState({ showActivityIndicator: true });
 
     const { apiURL } = this.state;
     const form = event.currentTarget;
@@ -50,33 +56,50 @@ class App extends Component {
       if (results) {
         this.setState({
           authenticationInfo: results,
-          activityIndicator: false,
+          showActivityIndicator: false,
         });
         const { authenticationInfo } = this.state;
         const { userId } = authenticationInfo;
         this.loadUserInfo(userId);
         return;
       }
-      this.setState({ activityIndicator: false });
+      this.setState({ showActivityIndicator: false });
     });
   }
 
   loadUserInfo(userId) {
     // alert(`userId : ${userId}`);
-    this.setState({ activityIndicator: true });
+    this.setState({ showActivityIndicator: true });
     const { authenticationInfo, apiURL } = this.state;
     const { authToken } = authenticationInfo;
     userInfoRequest(authToken, apiURL, userId, (results) => {
       if (results) {
         this.setState({
           userInfo: results,
-          // currentView: 'user-info',
           redirectToUser: true,
-          activityIndicator: false,
+          showActivityIndicator: false,
         });
         return;
       }
-      this.setState({ activityIndicator: false });
+      this.setState({ showActivityIndicator: false });
+    });
+  }
+
+  loadUsersIndex() {
+    this.setState({ showActivityIndicator: true });
+
+    const { authenticationInfo, apiURL } = this.state;
+    const { authToken } = authenticationInfo;
+    usersIndexRequest(authToken, apiURL, (results) => {
+      if (results) {
+        this.setState({
+          usersIndex: results,
+          showActivityIndicator: false,
+          redirectToUsersIndex: true,
+        });
+        return;
+      }
+      this.setState({ showActivityIndicator: false });
     });
   }
 
@@ -85,27 +108,45 @@ class App extends Component {
       apiURL,
       authenticationInfo,
       userInfo,
+      usersIndex,
       referralTicket,
       redirectToSignUp,
       redirectToUser,
-      activityIndicator,
+      redirectToUsersIndex,
+      showActivityIndicator,
     } = this.state;
-    const signup = redirectToSignUp ? <Redirect to="/signup" /> : '';
-    const activity = activityIndicator ? <ActivityInticator show={activityIndicator} apiURL={apiURL} /> : '';
-    let redirectToUserInfo = '';
+    const activityInticator = showActivityIndicator ? <ActivityInticator apiURL={apiURL} /> : '';
+
+    let signupRedirect = '';
+    if (redirectToSignUp) {
+      signupRedirect = <Redirect to="/signup" />;
+      this.state.redirectToSignUp = false;
+    }
+
+    let userRedirect = '';
     if (redirectToUser) {
       const { userId } = authenticationInfo;
-      redirectToUserInfo = <Redirect to={`/user/${userId}`} />;
-      // eslint-disable-next-line react/no-direct-mutation-state
+      userRedirect = <Redirect to={`/user/${userId}`} />;
       this.state.redirectToUser = false;
+    }
+
+    let usersIndexRedirect = '';
+    if (redirectToUsersIndex) {
+      usersIndexRedirect = <Redirect to="/users" />;
+      this.state.redirectToUsersIndex = false;
     }
 
     return (
       <Router>
-        { activity }
-        { signup }
-        { redirectToUserInfo }
-        <NavBar authenticationInfo={authenticationInfo} loadUserInfo={this.loadUserInfo} />
+        { activityInticator }
+        { signupRedirect }
+        { userRedirect }
+        { usersIndexRedirect }
+        <NavBar
+          authenticationInfo={authenticationInfo}
+          loadUserInfo={this.loadUserInfo}
+          loadUsersIndex={this.loadUsersIndex}
+        />
         <main>
           <Switch>
             <Route exact path="/">
@@ -125,11 +166,15 @@ class App extends Component {
                 userInfo={userInfo}
                 authenticationInfo={authenticationInfo}
                 loadUserInfo={this.loadUserInfo}
+                referralRequest={this.referralRequest}
               />
             </Route>
 
             <Route path="/users">
-              <div />
+              <UsersIndex
+                usersIndex={usersIndex}
+                loadUserInfo={this.loadUserInfo}
+              />
             </Route>
           </Switch>
         </main>
