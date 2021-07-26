@@ -22,6 +22,7 @@ import { ActivityInticator } from './components/activityInticator';
 import { loginRequest } from './modules/loginRequest';
 import { userInfoRequest, usersIndexRequest } from './modules/userRequests';
 import { createReferral } from './modules/createReferral';
+import { signUpRequest } from './modules/signup';
 
 class App extends Component {
   constructor(props) {
@@ -42,6 +43,7 @@ class App extends Component {
       showActivityIndicator: false,
     };
     this.loginHandler = this.loginHandler.bind(this);
+    this.signUpHandler = this.signUpHandler.bind(this);
     this.loadUserInfo = this.loadUserInfo.bind(this);
     this.loadUsersIndex = this.loadUsersIndex.bind(this);
     this.referralRequest = this.referralRequest.bind(this);
@@ -54,6 +56,26 @@ class App extends Component {
     const { apiURL } = this.state;
     const form = event.currentTarget;
     loginRequest(form, apiURL, (results) => {
+      if (results) {
+        this.setState({
+          authenticationInfo: results,
+          showActivityIndicator: false,
+        });
+        const { authenticationInfo } = this.state;
+        const { userId } = authenticationInfo;
+        this.loadUserInfo(userId);
+        return;
+      }
+      this.setState({ showActivityIndicator: false });
+    });
+  }
+
+  signUpHandler(event) {
+    event.preventDefault();
+    const { apiURL } = this.state;
+    const form = event.currentTarget;
+    this.setState({ showActivityIndicator: true });
+    signUpRequest(form, apiURL, (results) => {
       if (results) {
         this.setState({
           authenticationInfo: results,
@@ -173,7 +195,10 @@ class App extends Component {
             </Route>
 
             <Route path="/signup">
-              <Signup referralTicket={referralTicket} />
+              <Signup
+                referralTicket={referralTicket}
+                signUpHandler={this.signUpHandler}
+              />
             </Route>
 
             <Route path="/user/:id">
