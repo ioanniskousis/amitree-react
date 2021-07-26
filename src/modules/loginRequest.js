@@ -29,7 +29,7 @@ export async function loginRequest(form, apiURL, handle) {
     .then((response) => response.json())
     .then((json) => handle(parse(json)))
     .catch((e) => {
-      alert(JSON.stringify(e));
+      alert(`loginRequest catch: ${JSON.stringify(e)}`);
       return null;
     });
 }

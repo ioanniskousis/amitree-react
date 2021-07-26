@@ -1,3 +1,4 @@
+/* eslint-disable no-alert */
 import {
   BrowserRouter as Router,
   Route,
@@ -13,8 +14,11 @@ import { NavBar } from './components/navBar';
 import { Home } from './components/home';
 import { Login } from './components/login';
 import { Signup } from './components/signup';
+import { UserInfo } from './components/userInfo';
+import { ActivityInticator } from './components/activityInticator';
 
 import { loginRequest } from './modules/loginRequest';
+import { userInfoRequest } from './modules/userRequests';
 
 class App extends Component {
   constructor(props) {
@@ -22,14 +26,18 @@ class App extends Component {
     const params = new URLSearchParams(document.location.search.substring(1));
     const referralCode = params.get('referral_code');
     const apiParam = params.get('apiURL') || 'http://localhost:3000';
+    // const apiParam = params.get('apiURL') || 'https://boiling-fjord-82978.herokuapp.com';
     this.state = {
       apiURL: apiParam,
       authenticationInfo: {},
+      userInfo: {},
       referralTicket: referralCode,
       redirectToSignUp: referralCode != null,
+      redirectToUser: false,
       activityIndicator: false,
     };
     this.loginHandler = this.loginHandler.bind(this);
+    this.loadUserInfo = this.loadUserInfo.bind(this);
   }
 
   loginHandler(event) {
@@ -40,7 +48,6 @@ class App extends Component {
     const form = event.currentTarget;
     loginRequest(form, apiURL, (results) => {
       if (results) {
-        alert(JSON.stringify(results));
         this.setState({
           authenticationInfo: results,
           activityIndicator: false,
@@ -54,22 +61,51 @@ class App extends Component {
     });
   }
 
+  loadUserInfo(userId) {
+    // alert(`userId : ${userId}`);
+    this.setState({ activityIndicator: true });
+    const { authenticationInfo, apiURL } = this.state;
+    const { authToken } = authenticationInfo;
+    userInfoRequest(authToken, apiURL, userId, (results) => {
+      if (results) {
+        this.setState({
+          userInfo: results,
+          // currentView: 'user-info',
+          redirectToUser: true,
+          activityIndicator: false,
+        });
+        return;
+      }
+      this.setState({ activityIndicator: false });
+    });
+  }
+
   render() {
     const {
       apiURL,
       authenticationInfo,
+      userInfo,
       referralTicket,
       redirectToSignUp,
+      redirectToUser,
       activityIndicator,
     } = this.state;
     const signup = redirectToSignUp ? <Redirect to="/signup" /> : '';
-    const activity = activityIndicator ? <div /> : '';
+    const activity = activityIndicator ? <ActivityInticator show={activityIndicator} apiURL={apiURL} /> : '';
+    let redirectToUserInfo = '';
+    if (redirectToUser) {
+      const { userId } = authenticationInfo;
+      redirectToUserInfo = <Redirect to={`/user/${userId}`} />;
+      // eslint-disable-next-line react/no-direct-mutation-state
+      this.state.redirectToUser = false;
+    }
 
     return (
       <Router>
         { activity }
         { signup }
-        <NavBar authenticationInfo={authenticationInfo} />
+        { redirectToUserInfo }
+        <NavBar authenticationInfo={authenticationInfo} loadUserInfo={this.loadUserInfo} />
         <main>
           <Switch>
             <Route exact path="/">
@@ -85,7 +121,11 @@ class App extends Component {
             </Route>
 
             <Route path="/user/:id">
-              <div />
+              <UserInfo
+                userInfo={userInfo}
+                authenticationInfo={authenticationInfo}
+                loadUserInfo={this.loadUserInfo}
+              />
             </Route>
 
             <Route path="/users">
