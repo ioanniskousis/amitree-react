@@ -21,6 +21,7 @@ import { ActivityInticator } from './components/activityInticator';
 
 import { loginRequest } from './modules/loginRequest';
 import { userInfoRequest, usersIndexRequest } from './modules/userRequests';
+import { createReferral } from './modules/createReferral';
 
 class App extends Component {
   constructor(props) {
@@ -79,6 +80,20 @@ class App extends Component {
           redirectToUser: true,
           showActivityIndicator: false,
         });
+        return;
+      }
+      this.setState({ showActivityIndicator: false });
+    });
+  }
+
+  referralRequest(event) {
+    event.preventDefault();
+    this.setState({ showActivityIndicator: true });
+    const { apiURL, authenticationInfo } = this.state;
+    const { authToken, userId } = authenticationInfo;
+    createReferral(apiURL, authToken, (results) => {
+      if (results) {
+        this.loadUserInfo(userId);
         return;
       }
       this.setState({ showActivityIndicator: false });
