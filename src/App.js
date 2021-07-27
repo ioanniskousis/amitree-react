@@ -162,8 +162,8 @@ class App extends Component {
 
     let userRedirect = '';
     if (redirectToUser) {
-      const { userId } = authenticationInfo;
-      userRedirect = <Redirect to={`/user/${userId}`} />;
+      const { id } = userInfo;
+      userRedirect = <Redirect to={`/user/${id}`} />;
       this.state.redirectToUser = false;
     }
 

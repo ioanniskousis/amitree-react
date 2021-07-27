@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+/* eslint-disable no-alert */
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable no-plusplus */
@@ -13,7 +15,6 @@ export class UserInfo extends Component {
   }
 
   invitedUsersTable() {
-    // alert(JSON.stringify(this.props));
     const { userInfo } = this.props;
     const {
       invitedUsers,
